@@ -1,0 +1,99 @@
+<div class="page-header">
+  <h1>Room Calendar</h1>
+  <div class="date-picker">
+    <button class="nav-btn" (click)="selectedDate = prevDay(selectedDate); onDateChange()">‹</button>
+    <input type="date" [(ngModel)]="selectedDate" (change)="onDateChange()" />
+    <button class="nav-btn" (click)="selectedDate = nextDay(selectedDate); onDateChange()">›</button>
+  </div>
+</div>
+
+<div class="calendar-wrap">
+  <div class="calendar-grid" [style.grid-template-columns]="'80px repeat(' + rooms.length + ', 1fr)'">
+
+    <!-- Header row -->
+    <div class="time-header"></div>
+    <div class="room-header" *ngFor="let room of rooms">
+      <strong>{{ room.name }}</strong>
+      <small>Floor {{ room.floor }} · {{ room.capacity }} ppl</small>
+      <div class="amenities">
+        <span class="tag" *ngFor="let a of room.amenities">{{ a }}</span>
+      </div>
+    </div>
+
+    <!-- Time rows -->
+    <ng-container *ngFor="let slot of slots; let i = index">
+      <!-- Time label -->
+      <div class="time-label">
+        <span *ngIf="slot.displayTime">{{ slot.displayTime }}</span>
+      </div>
+
+      <!-- Room cells -->
+      <div
+        *ngFor="let room of rooms"
+        class="cell"
+        [class.unavailable]="!isRoomAvailableAtTime(room, slot.time)"
+        [class.free]="isRoomAvailableAtTime(room, slot.time) && !slot.bookings[room.id]"
+        [class.booked]="slot.bookings[room.id]"
+        [class.own]="slot.bookings[room.id] && isOwnBooking(slot.bookings[room.id]!)"
+        (click)="openBookingForm(room, slot)"
+        [title]="getCellTitle(room, slot)"
+      >
+        <div class="booking-label" *ngIf="slot.bookings[room.id] && isSlotStart(room.id, slot, i)">
+          <span class="bk-company">{{ slot.bookings[room.id]!.company_name }}</span>
+          <span class="bk-time">{{ slot.bookings[room.id]!.start_time }} – {{ slot.bookings[room.id]!.end_time }}</span>
+          <span class="bk-person">{{ slot.bookings[room.id]!.booked_by_name }}</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <span class="legend-item free">Free — click to book</span>
+  <span class="legend-item own">Your booking</span>
+  <span class="legend-item booked">Booked by others</span>
+  <span class="legend-item unavailable">Outside hours</span>
+</div>
+
+<!-- Booking Form Modal -->
+<div class="modal-overlay" *ngIf="showBookingForm" (click)="closeBookingForm()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Book {{ selectedRoom?.name }}</h2>
+        <p class="modal-meta">{{ selectedDate }} · from {{ selectedSlotTime }}</p>
+      </div>
+      <button class="close-btn" (click)="closeBookingForm()">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Your Name *</label>
+      <input type="text" [(ngModel)]="bookingForm.booked_by_name" placeholder="John Smith" />
+    </div>
+    <div class="field">
+      <label>Your Email *</label>
+      <input type="email" [(ngModel)]="bookingForm.booked_by_email" placeholder="john@company.com" />
+    </div>
+    <div class="field">
+      <label>End Time *</label>
+      <select [(ngModel)]="bookingForm.end_time">
+        <option *ngFor="let t of getEndTimeOptions(selectedRoom!)" [value]="t">{{ t }}</option>
+      </select>
+      <small>Min: {{ selectedRoom?.min_duration_mins }} min · Max: {{ selectedRoom?.max_duration_mins }} min</small>
+    </div>
+    <div class="field">
+      <label>Purpose</label>
+      <input type="text" [(ngModel)]="bookingForm.purpose" placeholder="Team standup, client call..." />
+    </div>
+
+    <p class="form-error" *ngIf="bookingError">{{ bookingError }}</p>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="closeBookingForm()">Cancel</button>
+      <button class="btn-primary" (click)="confirmBooking()" [disabled]="bookingSaving">
+        {{ bookingSaving ? 'Booking...' : 'Confirm Booking' }}
+      </button>
+    </div>
+  </div>
+</div>

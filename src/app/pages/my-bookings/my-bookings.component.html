@@ -1,0 +1,58 @@
+<div class="page-header">
+  <h1>My Bookings</h1>
+</div>
+
+<div class="card" *ngIf="bookings.length; else empty">
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Room</th>
+        <th>Floor</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Duration</th>
+        <th>Booked By</th>
+        <th>Purpose</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let b of bookings" [class.past]="isPast(b)">
+        <td><strong>{{ b.room_name }}</strong></td>
+        <td>{{ b.floor }}</td>
+        <td>{{ b.date | date:'mediumDate' }}</td>
+        <td>{{ b.start_time }} – {{ b.end_time }}</td>
+        <td>{{ b.duration_mins }} min</td>
+        <td>
+          {{ b.booked_by_name }}
+          <br /><small>{{ b.booked_by_email }}</small>
+        </td>
+        <td>{{ b.purpose || '—' }}</td>
+        <td>
+          <span class="badge" [class.confirmed]="b.status === 'confirmed'">
+            {{ b.status }}
+          </span>
+        </td>
+        <td>
+          <button
+            class="btn-sm danger"
+            (click)="cancel(b)"
+            *ngIf="b.status === 'confirmed' && !isPast(b)">
+            Cancel
+          </button>
+          <span class="muted" *ngIf="isPast(b)">Past</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<ng-template #empty>
+  <div class="empty-state">
+    <p>You have no bookings yet.</p>
+    <a routerLink="/calendar" class="btn-primary">Browse Rooms</a>
+  </div>
+</ng-template>

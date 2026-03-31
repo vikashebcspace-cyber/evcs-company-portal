@@ -1,0 +1,37 @@
+<div class="layout">
+  <header class="topbar">
+    <button class="hamburger" (click)="toggleSidebar()">☰</button>
+    <span class="topbar-title">{{ companyName }}</span>
+  </header>
+
+  <div class="overlay" *ngIf="sidebarOpen" (click)="closeSidebar()"></div>
+
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <div class="logo">
+      <span class="logo-icon">🏢</span>
+      <div class="logo-text">
+        <span class="company">{{ companyName }}</span>
+        <span class="building">{{ buildingName }}</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a routerLink="/calendar" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+        <span class="nav-icon">📅</span>
+        <span>Room Calendar</span>
+      </a>
+      <a routerLink="/my-bookings" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+        <span class="nav-icon">📋</span>
+        <span>My Bookings</span>
+      </a>
+    </nav>
+
+    <button class="logout-btn" (click)="logout()">
+      <span>🚪</span> Logout
+    </button>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
